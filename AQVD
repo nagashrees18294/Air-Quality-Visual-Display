@@ -1,0 +1,70 @@
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+#define OLED_RESET     -1
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+
+const int mq135Pin = A0;
+
+void setup() {
+  Serial.begin(9600);
+
+  if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
+    Serial.println("OLED failed");
+    for (;;);
+  }
+
+  display.clearDisplay();
+  display.setTextSize(1);
+  display.setTextColor(SSD1306_WHITE);
+  display.setCursor(0, 0);
+  display.println("AQI Project Init...");
+  display.display();
+  delay(2000);
+}
+
+void loop() {
+  int sensorValue = analogRead(mq135Pin);
+  int aqi = map(sensorValue, 0, 1023, 0, 500);
+  String category = "";
+
+  if (aqi <= 50) {
+    category = "Good";
+  } else if (aqi <= 100) {
+    category = "Moderate";
+  } else {
+    category = "Poor";
+  }
+
+  // 🟢 Serial Monitor with Labels
+  Serial.print("Sensor Value: ");
+  Serial.print(sensorValue);
+  Serial.print(" | AQI: ");
+  Serial.print(aqi);
+  Serial.print(" | Category: ");
+  Serial.println(category);
+
+  // 🔴 Serial Plotter values only (on second line)
+  Serial.print(sensorValue);
+  Serial.print("\t");
+  Serial.println(aqi);
+
+  // 🟢 OLED Display
+  display.clearDisplay();
+  display.setTextSize(1);
+  display.setCursor(0, 0);
+  display.print("Sensor Value: ");
+  display.println(sensorValue);
+
+  display.print("AQI: ");
+  display.println(aqi);
+
+  display.print("Category: ");
+  display.println(category);
+
+  display.display();
+
+  delay(2000);
+}
